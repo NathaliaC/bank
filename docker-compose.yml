@@ -1,0 +1,32 @@
+version: "3"
+ 
+services:
+  mysql:
+    image: mysql:5.7
+    hostname: mysql
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root123
+    ports:
+      - '3306:3306'
+    volumes:
+      - 'mysql:/var/lib/mysql'
+ 
+  app:
+    depends_on:
+      - "mysql"
+    build: .
+    command: bash start.sh
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/bank
+      - gems:/gems
+ 
+ 
+volumes:
+  mysql:
+  gems:
