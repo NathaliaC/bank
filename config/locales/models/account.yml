@@ -1,0 +1,13 @@
+pt-BR:
+  activerecord:
+    models:
+      account: Conta Bancária
+    attributes:
+      account:
+        id: "Código da Conta"
+    errors:
+      models:
+        account:
+          attributes:
+            id:
+              taken: Este id já foi utilizado.
