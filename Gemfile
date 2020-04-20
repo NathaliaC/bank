@@ -8,6 +8,8 @@ gem 'faker'
 gem 'jwt'
 gem 'bcrypt'
 gem 'simple_command'
+gem 'money', '~> 6.7', '>= 6.7.1'
+gem 'colorize'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 6.0.2'

@@ -16,7 +16,6 @@ class BankAccount < ApplicationRecord
   
   def load_defaults
     if self.new_record?
-      self.balance = 0.0 if self.balance.blank?
       self.account_number = SecureRandom.uuid
     end
   end

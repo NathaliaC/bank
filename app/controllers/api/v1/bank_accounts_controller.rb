@@ -10,12 +10,12 @@ module Api::V1
       if errors.size > 0
         render json: { errors: errors }, status: :unprocessable_entity
       else
-        @bank_account = BankAccount.new(account_params)
-        @bank_account.user = current_user
-        if @bank_account.save
-          render json: @bank_account, status: :created
+        bank_account = BankAccount.new(account_params)
+        bank_account.user = current_user
+        if bank_account.save
+          render json: bank_account, status: :created
         else
-            render json: @bank_account.errors, status: :unprocessable_entity
+            render json: bank_account.errors, status: :unprocessable_entity
         end
       end
     end
@@ -35,8 +35,8 @@ module Api::V1
       if errors.size > 0
         render json: { errors: errors }, status: :unprocessable_entity
       else
-        @bank_account = BankAccount.where(id: params_balances[:account_id]).last()
-        render json: { bank_account: { id: @bank_account.id, balance: @bank_account.balance} }
+        bank_account = BankAccount.where(id: params_balances[:account_id]).last()
+        render json: { bank_account: { id: bank_account.id, balance: bank_account.balance} }
       end
     end
 
