@@ -2,7 +2,7 @@
 
 require_relative 'config_script'
 
-class BankAccount
+class Account
   attr_reader :id, :balance
 
   def initialize(id ,balance)
@@ -39,61 +39,47 @@ class BankAccount
     return balance
   end
 
-  def format_currency(value)
-    Money.new(value, "BRL")
-  end 
-
-  def map_transactions(transaction_file)
-    transactions = {}
-    CSV.foreach(transaction_file) do |account_id, amount|
-      amount = format_currency(amount)
-      if transactions.include?(account_id)
-        transactions[account_id].push amount
-      else 
-        transactions[account_id] = [amount]
-      end
-    end
-    return transactions
-  end 
-
   def to_s
     "ID da Conta: #{id}, Saldo: #{color(balance)}"
   end
-  
-  def generate_transaction(transaction_file)
-    transactions = map_transactions(transaction_file) 
-    
-    if transactions.include?(self.id)
-      transactions[self.id].map do |amount|
-        if amount.positive?
-          self.credit(amount)
-        elsif amount.negative?
-          self.debit(amount)
-          if self.balance.negative?
-            self.bank_fine
-          end 
-        end
-      end
-    end
-  end 
 
   def self.create_accounts(files)
     accounts_file = files[0]
-    transaction_file = files[1]
-
-    CSV.foreach(accounts_file) do |account_id, balance|
-      bank_account = BankAccount.new(account_id, balance)
-      bank_account.generate_transaction(transaction_file)
-      bank_account.extract
+    transactions_file = files[1]
+    accounts = []
+    transactions = []
+    CSV.foreach(accounts_file) do |id, balance|
+      existing_account = accounts.map(&:id).include?(id)
+      unless existing_account
+        account = Account.new(id, balance)
+        accounts.push account
+        CSV.foreach(transactions_file) do |account_id, amount|
+          transaction = Transaction.new(account_id, amount)
+          transactions.push transaction
+          if account.id == transaction.account_id
+            account.execute_transaction(transaction.amount)
+          end
+          transactions
+        end
+        accounts
+        account.extract
+      end 
+    end 
+  end
+  
+  def execute_transaction(amount)
+    if amount.positive?
+      self.credit(amount)
+    elsif amount.negative?
+      self.debit(amount)
+      if self.balance.negative?
+        self.bank_fine
+      end 
     end
   end 
 
   def color(balance)
-    if balance.negative?
-      balance.format.colorize(:red)
-    else
-      balance.format.colorize(:green)
-    end
+    balance.format.colorize(balance.negative? ? :red : :green)
   end
 
   def extract
@@ -111,11 +97,24 @@ class BankAccount
   end
 end
 
+class Transaction
+  attr_reader :account_id, :amount
+
+  def initialize(account_id, amount)
+    @account_id = account_id
+    @amount = format_currency(amount)
+  end
+end
+
+def format_currency(value)
+  Money.new(value, "BRL")
+end 
+
 def line(qtd=60)
   puts "-" * qtd
 end 
 
-def validate_arguments
+def start
   inputted_files = ARGV  
   if ARGV.length < 2
       puts "Você não inseriu a quantidade de argumentos necessária, Esperado: 2, Informado #{ARGV.length} :("
@@ -125,16 +124,8 @@ def validate_arguments
       puts file
     end
     line
-    generate_balance(inputted_files)
+    Account.create_accounts(inputted_files)
   end
 end
 
-def generate_balance(files)
-  BankAccount.create_accounts(files)
-end 
-
-def start_program
-  validate_arguments
-end 
-
-start_program
+start
